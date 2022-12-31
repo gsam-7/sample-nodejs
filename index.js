@@ -1,4 +1,3 @@
-npm i puppeteer mocha selenium-webdriver chai
 const puppeteer = require('puppeteer');
 
 let browser;
