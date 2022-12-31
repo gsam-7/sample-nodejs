@@ -1,41 +1,45 @@
-var createError = require('http-errors');
-var express = require('express');
-var path = require('path');
-var cookieParser = require('cookie-parser');
-var logger = require('morgan');
+const puppeteer = require("puppeteer");
 
-var indexRouter = require('./routes/index');
-// var usersRouter = require('./routes/users');
+let val = 20000;
+// enter the amount of fake votes you want on every run
 
-var app = express();
 
-// view engine setup
-app.set('views', path.join(__dirname, 'views'));
-app.set('view engine', 'pug');
 
-app.use(logger('dev'));
-app.use(express.json());
-app.use(express.urlencoded({ extended: false }));
-app.use(cookieParser());
-app.use(express.static(path.join(__dirname, 'public')));
-
-app.use('/', indexRouter);
-// app.use('/users', usersRouter);
-
-// catch 404 and forward to error handler
-app.use(function(req, res, next) {
-  next(createError(404));
-});
-
-// error handler
-app.use(function(err, req, res, next) {
-  // set locals, only providing error in development
-  res.locals.message = err.message;
-  res.locals.error = req.app.get('env') === 'development' ? err : {};
-
-  // render the error page
-  res.status(err.status || 500);
-  res.render('error');
-});
-
-module.exports = app;
+(async () => {
+  for (let i = 0; i < val; i++) {
+    try {
+    const browser = await puppeteer.launch({
+     headless: false,
+      args: ["--no-sandbox", "--disable-setuid-sandbox"],
+    });
+    
+    const page = await browser.newPage();
+    await page.setRequestInterception(true);
+    page.on('request', (req) => {
+      if (
+        req.resourceType() == 'sub_frame' ||
+        req.resourceType() == 'stylesheet' ||
+        req.resourceType() == 'font' ||
+        req.resourceType() == 'image'
+      ) {
+        req.abort();
+      } else {
+        req.continue();
+      }
+    });
+    
+    await page.goto(
+      "https://ngx.me/4VNu6LV.h?ngxItemID=1980e0a5f5eacce9996483416dbdae7&s=RyJjIjoiZGpqeXU6QkJjdGUubGJtam1hcy56YnRCaWNCcj10RldTdDIxUFpCZGh3c3hxbXZqLnJ5ZSIsInoiOiJ1bXR0cW5sIlQ%3D", {waitUntil: 'load', timeout: 60000}
+    );
+    await page.evaluate(() => {
+      $(".xDetailContainer .xButton")[3].click();
+    });
+    await setTimeout(async () => {
+      await browser.close();
+      console.log(`Positive ${i}/${val}`)
+    }, 1000);
+    } catch {
+        console.log(`Negative ${i}/${val}`)
+    }
+  }
+})();
