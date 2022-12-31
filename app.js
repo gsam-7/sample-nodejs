@@ -1,4 +1,4 @@
-npm install puppeteer --save && npm start
+
 const puppeteer = require("puppeteer");
 
 let val = 20000;
